@@ -1,0 +1,13 @@
+{
+  "id": "quantum-art-forge",
+  "name": "Quantum Art Forge",
+  "x": -800,
+  "y": -2880,
+  "width": 1024,
+  "height": 768,
+  "color": "#00D4FF80",
+  "rotation": 0,
+  "locked": false,
+  "visible": true,
+  "opacity": 1
+}

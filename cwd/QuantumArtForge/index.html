@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Art Forge</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #00ff41;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 2px solid #00ff41;
+            position: relative;
+            z-index: 1;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #00ff41;
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+            animation: flicker 2s infinite alternate;
+        }
+        @keyframes flicker {
+            0% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        main {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .controls {
+            width: 320px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        .controls label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ff41;
+            font-weight: bold;
+        }
+        .controls input, .controls select, .controls button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #00ff41;
+            border-radius: 5px;
+            background: rgba(0, 255, 65, 0.1);
+            color: #00ff41;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            box-shadow: 0 0 10px #00ff41;
+        }
+        .controls button {
+            background: #00ff41;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .controls button:hover {
+            background: #00cc33;
+            box-shadow: 0 0 15px #00ff41;
+        }
+        .image-display {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+        }
+        #generated-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+            transition: all 0.5s ease;
+        }
+        .placeholder {
+            font-size: 24px;
+            color: #00ff41;
+            text-align: center;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 4px solid #00ff41;
+            border-top: 4px solid #000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .history {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            overflow-x: auto;
+            padding: 10px;
+            width: 100%;
+        }
+        .history img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #00ff41;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .history img:hover {
+            box-shadow: 0 0 10px #00ff41;
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Quantum Art Forge</h1>
+    </header>
+    <main>
+        <aside class="controls">
+            <label for="prompt">Quantum Prompt:</label>
+            <input type="text" id="prompt" placeholder="Forge your digital reality...">
+
+            <label for="algorithm">Algorithm:</label>
+            <select id="algorithm">
+                <option value="diffusion">Diffusion</option>
+                <option value="gan">GAN</option>
+                <option value="vae">VAE</option>
+                <option value="hybrid">Hybrid</option>
+            </select>
+
+            <label for="resolution">Resolution: <span id="resolution-value">512x512</span></label>
+            <input type="range" id="resolution" min="256" max="1024" value="512" step="64">
+
+            <label for="iterations">Iterations: <span id="iterations-value">50</span></label>
+            <input type="range" id="iterations" min="10" max="100" value="50">
+
+            <label for="creativity">Creativity: <span id="creativity-value">7.5</span></label>
+            <input type="range" id="creativity" min="1" max="20" value="7.5" step="0.5">
+
+            <label for="seed">Quantum Seed:</label>
+            <input type="number" id="seed" placeholder="Entangle randomness">
+
+            <button id="forge">⚡ Forge</button>
+            <button id="reset">🔄 Reset Matrix</button>
+            <button id="export">⬇️ Export</button>
+        </aside>
+        <section class="image-display">
+            <div class="placeholder" id="placeholder">Quantum image will materialize here</div>
+            <img id="generated-image" src="" alt="Forged Image" style="display: none;">
+            <div class="loading" id="loading"></div>
+            <div class="history" id="history"></div>
+        </section>
+    </main>
+    <script>
+        let forgedImages = [];
+
+        function updateValue(id, suffix = '') {
+            const slider = document.getElementById(id);
+            const value = document.getElementById(id + '-value');
+            if (value) {
+                if (id === 'resolution') {
+                    value.textContent = slider.value + 'x' + slider.value;
+                } else {
+                    value.textContent = slider.value + suffix;
+                }
+            }
+        }
+
+        document.getElementById('resolution').addEventListener('input', () => updateValue('resolution'));
+        document.getElementById('iterations').addEventListener('input', () => updateValue('iterations'));
+        document.getElementById('creativity').addEventListener('input', () => updateValue('creativity'));
+
+        document.getElementById('forge').addEventListener('click', function() {
+            const loading = document.getElementById('loading');
+            const placeholder = document.getElementById('placeholder');
+            const img = document.getElementById('generated-image');
+
+            placeholder.style.display = 'none';
+            img.style.display = 'none';
+            loading.style.display = 'block';
+
+            setTimeout(() => {
+                const size = document.getElementById('resolution').value;
+                const newSrc = `https://picsum.photos/${size}/${size}?random=${Date.now()}`;
+                img.src = newSrc;
+                img.onload = () => {
+                    loading.style.display = 'none';
+                    img.style.display = 'block';
+                    forgedImages.push(newSrc);
+                    updateHistory();
+                };
+            }, 2500);
+        });
+
+        document.getElementById('reset').addEventListener('click', function() {
+            document.getElementById('prompt').value = '';
+            document.getElementById('algorithm').value = 'diffusion';
+            document.getElementById('resolution').value = 512;
+            document.getElementById('iterations').value = 50;
+            document.getElementById('creativity').value = 7.5;
+            document.getElementById('seed').value = '';
+            updateValue('resolution');
+            updateValue('iterations');
+            updateValue('creativity');
+            document.getElementById('generated-image').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        });
+
+        document.getElementById('export').addEventListener('click', function() {
+            const img = document.getElementById('generated-image');
+            if (img.src && img.style.display !== 'none') {
+                const link = document.createElement('a');
+                link.href = img.src;
+                link.download = 'quantum-art.png';
+                link.click();
+            }
+        });
+
+        function updateHistory() {
+            const history = document.getElementById('history');
+            history.innerHTML = '';
+            forgedImages.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.onclick = () => {
+                    document.getElementById('generated-image').src = src;
+                    document.getElementById('generated-image').style.display = 'block';
+                    document.getElementById('placeholder').style.display = 'none';
+                };
+                history.appendChild(img);
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('forge').click();
+            }
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                document.getElementById('reset').click();
+            }
+        });
+    </script>
+</body>
+</html>

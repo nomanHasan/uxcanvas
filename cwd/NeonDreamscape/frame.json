@@ -1,0 +1,13 @@
+{
+  "id": "neon-dreamscape",
+  "name": "Neon Dreamscape",
+  "x": -1000,
+  "y": -2300,
+  "width": 1024,
+  "height": 768,
+  "color": "#FF00FF80",
+  "rotation": 0,
+  "locked": false,
+  "visible": true,
+  "opacity": 1
+}

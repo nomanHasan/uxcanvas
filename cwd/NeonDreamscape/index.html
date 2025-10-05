@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Dreamscape</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ff0080 0%, #8000ff 50%, #0080ff 100%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 0, 128, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px #ff0080, 0 0 40px #ff0080;
+        }
+        main {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+        }
+        .controls {
+            width: 350px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .controls label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .controls input, .controls select, .controls textarea, .controls button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 14px;
+        }
+        .controls textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        .controls input:focus, .controls select:focus, .controls textarea:focus {
+            outline: none;
+            border-color: #ff0080;
+            box-shadow: 0 0 0 2px rgba(255, 0, 128, 0.5);
+        }
+        .controls button {
+            background: linear-gradient(45deg, #ff0080, #8000ff);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 0, 128, 0.4);
+        }
+        .image-display {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #generated-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.5s ease;
+        }
+        .placeholder {
+            font-size: 24px;
+            opacity: 0.8;
+            text-align: center;
+        }
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ff0080;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .batch {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .batch img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .batch img:hover {
+            transform: scale(1.05);
+            border-color: #ff0080;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Neon Dreamscape</h1>
+    </header>
+    <main>
+        <aside class="controls">
+            <label for="prompt">Dream Prompt:</label>
+            <textarea id="prompt" placeholder="Paint your neon dreams..."></textarea>
+
+            <label for="negative">Negative Prompt:</label>
+            <input type="text" id="negative" placeholder="What to avoid...">
+
+            <label for="style-preset">Style Preset:</label>
+            <select id="style-preset">
+                <option value="vaporwave">Vaporwave</option>
+                <option value="cyberpunk">Cyberpunk</option>
+                <option value="dreamy">Dreamy</option>
+                <option value="neon">Neon Glow</option>
+            </select>
+
+            <label for="aspect">Aspect Ratio:</label>
+            <select id="aspect">
+                <option value="1:1">Square (1:1)</option>
+                <option value="16:9">Wide (16:9)</option>
+                <option value="9:16">Tall (9:16)</option>
+                <option value="4:3">Classic (4:3)</option>
+            </select>
+
+            <label for="quality">Quality: <span id="quality-value">High</span></label>
+            <input type="range" id="quality" min="1" max="3" value="2">
+
+            <label for="batch-size">Batch Size:</label>
+            <input type="number" id="batch-size" min="1" max="4" value="1">
+
+            <button id="dream">🌈 Dream</button>
+            <button id="reset">🔄 Reset</button>
+            <button id="save">💾 Save All</button>
+        </aside>
+        <section class="image-display">
+            <div class="placeholder" id="placeholder">Your neon dream will appear here</div>
+            <img id="generated-image" src="" alt="Dreamt Image" style="display: none;">
+            <div class="loading" id="loading"></div>
+            <div class="batch" id="batch"></div>
+        </section>
+    </main>
+    <script>
+        let dreamtImages = [];
+
+        function updateQuality() {
+            const quality = document.getElementById('quality');
+            const value = document.getElementById('quality-value');
+            const levels = ['Low', 'Medium', 'High'];
+            value.textContent = levels[quality.value - 1];
+        }
+
+        document.getElementById('quality').addEventListener('input', updateQuality);
+        updateQuality();
+
+        document.getElementById('dream').addEventListener('click', function() {
+            const loading = document.getElementById('loading');
+            const placeholder = document.getElementById('placeholder');
+            const img = document.getElementById('generated-image');
+            const batchSize = parseInt(document.getElementById('batch-size').value);
+
+            placeholder.style.display = 'none';
+            img.style.display = 'none';
+            loading.style.display = 'block';
+
+            dreamtImages = [];
+            document.getElementById('batch').innerHTML = '';
+
+            for (let i = 0; i < batchSize; i++) {
+                setTimeout(() => {
+                    const aspect = document.getElementById('aspect').value.split(':');
+                    const width = 512 * (parseInt(aspect[0]) / parseInt(aspect[1]));
+                    const height = 512;
+                    const newSrc = `https://picsum.photos/${Math.round(width)}/${height}?random=${Date.now() + i}`;
+                    dreamtImages.push(newSrc);
+
+                    if (batchSize === 1) {
+                        img.src = newSrc;
+                        img.onload = () => {
+                            loading.style.display = 'none';
+                            img.style.display = 'block';
+                        };
+                    } else {
+                        updateBatch();
+                        if (i === batchSize - 1) {
+                            loading.style.display = 'none';
+                        }
+                    }
+                }, (i + 1) * 1000);
+            }
+        });
+
+        document.getElementById('reset').addEventListener('click', function() {
+            document.getElementById('prompt').value = '';
+            document.getElementById('negative').value = '';
+            document.getElementById('style-preset').value = 'vaporwave';
+            document.getElementById('aspect').value = '1:1';
+            document.getElementById('quality').value = 2;
+            document.getElementById('batch-size').value = 1;
+            updateQuality();
+            document.getElementById('generated-image').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+            dreamtImages = [];
+            document.getElementById('batch').innerHTML = '';
+        });
+
+        document.getElementById('save').addEventListener('click', function() {
+            dreamtImages.forEach((src, index) => {
+                const link = document.createElement('a');
+                link.href = src;
+                link.download = `neon-dream-${index + 1}.png`;
+                link.click();
+            });
+        });
+
+        function updateBatch() {
+            const batch = document.getElementById('batch');
+            batch.innerHTML = '';
+            dreamtImages.forEach((src, index) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.onclick = () => {
+                    document.getElementById('generated-image').src = src;
+                    document.getElementById('generated-image').style.display = 'block';
+                    document.getElementById('placeholder').style.display = 'none';
+                };
+                batch.appendChild(img);
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                document.getElementById('dream').click();
+            }
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                document.getElementById('reset').click();
+            }
+        });
+    </script>
+</body>
+</html>

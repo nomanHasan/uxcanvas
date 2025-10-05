@@ -79,6 +79,8 @@ const createInitialState = (): Omit<AppState, keyof CanvasActions> => ({
     startPoint: null,
     dragOffset: null,
     resizeHandle: null,
+    initialFrames: null,
+    lastScreenPoint: null,
   },
   selectionBox: null,
   hoveredFrameId: null,

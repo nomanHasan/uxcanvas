@@ -47,6 +47,8 @@ export interface DragState {
   startPoint: Point | null;
   dragOffset: Point | null;
   resizeHandle: ResizeHandle;
+  initialFrames: Record<string, Frame> | null;
+  lastScreenPoint: Point | null;
 }
 
 export interface HistoryState {

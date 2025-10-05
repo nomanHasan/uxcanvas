@@ -1,6 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useCanvasStore } from '@/store/useCanvasStore';
 import { Frame } from '@/types';
+
+const SIZE_PRESETS = [
+  { id: 'mobile-xs', label: 'Mobile XS - 320 x 568', width: 320, height: 568 },
+  { id: 'mobile-android', label: 'Mobile - 360 x 640', width: 360, height: 640 },
+  { id: 'mobile-modern', label: 'Mobile - 375 x 812', width: 375, height: 812 },
+  { id: 'mobile-plus', label: 'Mobile Plus - 414 x 896', width: 414, height: 896 },
+  { id: 'tablet-portrait', label: 'Tablet Portrait - 768 x 1024', width: 768, height: 1024 },
+  { id: 'tablet-landscape', label: 'Tablet Landscape - 1024 x 768', width: 1024, height: 768 },
+  { id: 'laptop-720p', label: 'Laptop 13" - 1280 x 720', width: 1280, height: 720 },
+  { id: 'laptop-hd', label: 'Laptop HD - 1366 x 768', width: 1366, height: 768 },
+  { id: 'laptop-mac', label: 'Laptop 15" - 1440 x 900', width: 1440, height: 900 },
+  { id: 'desktop-fhd', label: 'Desktop Full HD - 1920 x 1080', width: 1920, height: 1080 },
+  { id: 'desktop-qhd', label: 'Desktop WQHD - 2560 x 1440', width: 2560, height: 1440 },
+  { id: 'desktop-4k', label: 'Desktop 4K - 3840 x 2160', width: 3840, height: 2160 },
+];
 
 export function RightPanel() {
   const { selectedIds, updateFrame, getSelectedFrames, saveHistory } =
@@ -14,6 +29,7 @@ export function RightPanel() {
     opacity: '',
     rotation: '',
     color: '#000000',
+    preset: '',
   });
 
   const selectedFrames = getSelectedFrames();
@@ -30,6 +46,12 @@ export function RightPanel() {
         opacity: String(Math.round(singleFrame.opacity * 100)),
         rotation: String(Math.round(singleFrame.rotation)),
         color: singleFrame.color.substring(0, 7),
+        preset:
+          SIZE_PRESETS.find(
+            (preset) =>
+              Math.abs(singleFrame.width - preset.width) < 1 &&
+              Math.abs(singleFrame.height - preset.height) < 1
+          )?.id ?? '',
       });
     } else {
       setLocalValues({
@@ -40,6 +62,7 @@ export function RightPanel() {
         opacity: '',
         rotation: '',
         color: '#000000',
+        preset: '',
       });
     }
   }, [singleFrame]);
@@ -67,6 +90,8 @@ export function RightPanel() {
       case 'opacity':
         updates.opacity = Math.max(0, Math.min(100, numValue)) / 100;
         break;
+      case 'preset':
+        return;
     }
 
     updateFrame(singleFrame.id, updates);
@@ -79,6 +104,35 @@ export function RightPanel() {
     updateFrame(singleFrame.id, { color: color + singleFrame.color.substring(7) });
     saveHistory();
   };
+
+  const handlePresetChange = useCallback(
+    async (presetId: string) => {
+      if (!singleFrame) return;
+
+      setLocalValues((prev) => ({ ...prev, preset: presetId }));
+
+      if (!presetId) {
+        return;
+      }
+
+      const preset = SIZE_PRESETS.find((entry) => entry.id === presetId);
+      if (!preset) return;
+
+      await updateFrame(singleFrame.id, {
+        width: preset.width,
+        height: preset.height,
+      });
+
+      setLocalValues((prev) => ({
+        ...prev,
+        width: String(preset.width),
+        height: String(preset.height),
+      }));
+
+      saveHistory();
+    },
+    [singleFrame, updateFrame, saveHistory]
+  );
 
   return (
     <div
@@ -148,6 +202,25 @@ export function RightPanel() {
               <label className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
                 Size
               </label>
+              <div>
+                <label className="text-xs text-text-secondary mb-1 block">Preset</label>
+                <select
+                  value={localValues.preset}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    void handlePresetChange(value);
+                  }}
+                  disabled={!singleFrame}
+                  className="w-full px-2 py-1.5 bg-background border border-border rounded text-sm text-text-primary focus:outline-none focus:border-accent disabled:opacity-50"
+                >
+                  <option value="">Custom Size</option>
+                  {SIZE_PRESETS.map((preset) => (
+                    <option key={preset.id} value={preset.id}>
+                      {preset.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs text-text-secondary mb-1 block">Width</label>

@@ -298,10 +298,20 @@ export function Canvas() {
         for (const frame of selectedFrames) {
           const handle = getResizeHandle(screenX, screenY, frame, camera, rect.width, rect.height);
           if (handle) {
+            const initialFrames = selectedFrames.reduce<Record<string, Frame>>(
+              (acc, current) => {
+                acc[current.id] = { ...current };
+                return acc;
+              },
+              {}
+            );
             setDragState({
               isDragging: true,
               startPoint: worldPos,
+              dragOffset: null,
               resizeHandle: handle,
+              initialFrames,
+              lastScreenPoint: null,
             });
             return;
           }
@@ -326,6 +336,8 @@ export function Canvas() {
               y: worldPos.y - clickedFrame.y,
             },
             resizeHandle: null,
+            initialFrames: null,
+            lastScreenPoint: null,
           });
         } else {
           // Start selection box
@@ -345,6 +357,8 @@ export function Canvas() {
           startPoint: worldPos,
           dragOffset: null,
           resizeHandle: null,
+          initialFrames: null,
+          lastScreenPoint: null,
         });
       } else if (effectiveTool === 'pan') {
         setDragState({
@@ -352,6 +366,8 @@ export function Canvas() {
           startPoint: worldPos,
           dragOffset: null,
           resizeHandle: null,
+          initialFrames: null,
+          lastScreenPoint: { x: screenX, y: screenY },
         });
       }
     },
@@ -440,36 +456,60 @@ export function Canvas() {
               const frame = frames.find((f) => f.id === id);
               if (!frame || frame.locked) return;
 
-              const updates: Partial<Frame> = {};
               const handle = dragState.resizeHandle!;
+              const baseFrame = dragState.initialFrames?.[id] ?? frame;
+
+              let newX = baseFrame.x;
+              let newY = baseFrame.y;
+              let newWidth = baseFrame.width;
+              let newHeight = baseFrame.height;
 
               if (handle.includes('w')) {
-                updates.width = frame.width - dx;
-                updates.x = frame.x + dx;
+                newWidth = baseFrame.width - dx;
+                newX = baseFrame.x + dx;
               }
               if (handle.includes('e')) {
-                updates.width = frame.width + dx;
+                newWidth = baseFrame.width + dx;
               }
               if (handle.includes('n')) {
-                updates.height = frame.height - dy;
-                updates.y = frame.y + dy;
+                newHeight = baseFrame.height - dy;
+                newY = baseFrame.y + dy;
               }
               if (handle.includes('s')) {
-                updates.height = frame.height + dy;
+                newHeight = baseFrame.height + dy;
               }
 
-              // Apply snap to grid
-              if (snapToGrid && updates.x !== undefined) {
-                updates.x = snapValueToGrid(updates.x, gridSize);
+              const minSize = 10;
+              if (newWidth < minSize) {
+                const offset = minSize - newWidth;
+                if (handle.includes('w')) {
+                  newX -= offset;
+                }
+                newWidth = minSize;
               }
-              if (snapToGrid && updates.y !== undefined) {
-                updates.y = snapValueToGrid(updates.y, gridSize);
+              if (newHeight < minSize) {
+                const offset = minSize - newHeight;
+                if (handle.includes('n')) {
+                  newY -= offset;
+                }
+                newHeight = minSize;
+              }
+
+              const updates: Partial<Frame> = {
+                width: newWidth,
+                height: newHeight,
+              };
+
+              if (handle.includes('w')) {
+                updates.x = snapToGrid ? snapValueToGrid(newX, gridSize) : newX;
+              }
+
+              if (handle.includes('n')) {
+                updates.y = snapToGrid ? snapValueToGrid(newY, gridSize) : newY;
               }
 
               updateFrame(id, updates);
             });
-
-            setDragState({ startPoint: worldPos });
           } else if (dragState.dragOffset) {
             // Move selected frames
             selectedIds.forEach((id) => {
@@ -526,13 +566,21 @@ export function Canvas() {
             endY: worldPos.y,
           });
         } else if (effectiveTool === 'pan') {
-          // Pan camera
-          const dx = worldPos.x - dragState.startPoint.x;
-          const dy = worldPos.y - dragState.startPoint.y;
-          setCamera({
-            x: camera.x + dx,
-            y: camera.y + dy,
-          });
+          if (dragState.lastScreenPoint) {
+            const deltaScreenX = screenX - dragState.lastScreenPoint.x;
+            const deltaScreenY = screenY - dragState.lastScreenPoint.y;
+
+            if (deltaScreenX !== 0 || deltaScreenY !== 0) {
+              setCamera({
+                x: camera.x + deltaScreenX / camera.zoom,
+                y: camera.y + deltaScreenY / camera.zoom,
+              });
+
+              setDragState({
+                lastScreenPoint: { x: screenX, y: screenY },
+              });
+            }
+          }
         }
       }
     },
@@ -605,6 +653,8 @@ export function Canvas() {
         startPoint: null,
         dragOffset: null,
         resizeHandle: null,
+        initialFrames: null,
+        lastScreenPoint: null,
       });
       setSelectionBox(null);
       canvas.style.cursor = 'default';

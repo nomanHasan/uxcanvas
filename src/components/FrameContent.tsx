@@ -68,7 +68,7 @@ export function FrameContent() {
                 width: `${frame.width}px`,
                 height: `${frame.height}px`,
                 opacity: frame.opacity,
-                pointerEvents: 'auto',
+                pointerEvents: 'none',
                 transform: `rotate(${frame.rotation}deg) scale(${camera.zoom})`,
                 transformOrigin: 'top left',
                 willChange: 'transform',
@@ -84,6 +84,7 @@ export function FrameContent() {
                   border: 'none',
                   background: 'white',
                   display: 'block',
+                  pointerEvents: 'none',
                 }}
               />
             </div>
