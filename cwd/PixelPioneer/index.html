@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Pioneer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            font-family: 'Press Start 2P', monospace;
+            margin: 0;
+            padding: 0;
+            background: #2c3e50;
+            color: #ecf0f1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            background: #34495e;
+            border-bottom: 4px solid #f39c12;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.5em;
+            color: #f39c12;
+            text-shadow: 2px 2px 0px #e67e22;
+        }
+        main {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+        }
+        .controls {
+            width: 320px;
+            background: #34495e;
+            padding: 20px;
+            border-radius: 10px;
+            border: 4px solid #f39c12;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .controls label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ecf0f1;
+            font-size: 10px;
+        }
+        .controls input, .controls select, .controls button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #f39c12;
+            border-radius: 0;
+            background: #2c3e50;
+            color: #ecf0f1;
+            font-size: 10px;
+            font-family: inherit;
+        }
+        .controls input:focus, .controls select:focus {
+            outline: none;
+            border-color: #e74c3c;
+        }
+        .controls button {
+            background: #e74c3c;
+            color: #ecf0f1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 8px;
+        }
+        .controls button:hover {
+            background: #c0392b;
+            box-shadow: 0 0 10px #e74c3c;
+        }
+        .image-display {
+            flex: 1;
+            background: #34495e;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 4px solid #f39c12;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        #generated-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 0;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            box-shadow: 0 0 20px rgba(243, 156, 18, 0.5);
+            transition: all 0.3s ease;
+        }
+        .placeholder {
+            font-size: 16px;
+            color: #bdc3c7;
+            text-align: center;
+        }
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f39c12;
+            border-top: 4px solid #2c3e50;
+            border-radius: 0;
+            animation: pixelspin 1s infinite steps(8);
+        }
+        @keyframes pixelspin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .sprites {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            overflow-x: auto;
+            padding: 10px;
+            width: 100%;
+        }
+        .sprites img {
+            width: 64px;
+            height: 64px;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            border: 2px solid #f39c12;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .sprites img:hover {
+            border-color: #e74c3c;
+            box-shadow: 0 0 10px #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>PIXEL PIONEER</h1>
+    </header>
+    <main>
+        <aside class="controls">
+            <label for="prompt">PROMPT:</label>
+            <input type="text" id="prompt" placeholder="DESCRIBE YOUR PIXEL ART...">
+
+            <label for="style">STYLE:</label>
+            <select id="style">
+                <option value="8bit">8-BIT</option>
+                <option value="16bit">16-BIT</option>
+                <option value="pixel">PIXEL ART</option>
+                <option value="sprite">SPRITE</option>
+            </select>
+
+            <label for="palette">PALETTE:</label>
+            <select id="palette">
+                <option value="nes">NES</option>
+                <option value="gameboy">GAMEBOY</option>
+                <option value="atari">ATARI</option>
+                <option value="custom">CUSTOM</option>
+            </select>
+
+            <label for="resolution">RES: <span id="resolution-value">64x64</span></label>
+            <input type="range" id="resolution" min="32" max="256" value="64" step="32">
+
+            <label for="pixel-size">PIXEL SIZE: <span id="pixel-size-value">1</span></label>
+            <input type="range" id="pixel-size" min="1" max="4" value="1">
+
+            <button id="generate">GENERATE</button>
+            <button id="reset">RESET</button>
+            <button id="export">EXPORT</button>
+        </aside>
+        <section class="image-display">
+            <div class="placeholder" id="placeholder">PIXEL ART WILL APPEAR HERE</div>
+            <img id="generated-image" src="" alt="Pixel Art" style="display: none;">
+            <div class="loading" id="loading"></div>
+            <div class="sprites" id="sprites"></div>
+        </section>
+    </main>
+    <script>
+        let pixelImages = [];
+
+        function updateValue(id, suffix = '') {
+            const slider = document.getElementById(id);
+            const value = document.getElementById(id + '-value');
+            if (value) value.textContent = slider.value + suffix;
+        }
+
+        document.getElementById('resolution').addEventListener('input', () => updateValue('resolution', 'x' + document.getElementById('resolution').value));
+        document.getElementById('pixel-size').addEventListener('input', () => updateValue('pixel-size'));
+
+        document.getElementById('generate').addEventListener('click', function() {
+            const loading = document.getElementById('loading');
+            const placeholder = document.getElementById('placeholder');
+            const img = document.getElementById('generated-image');
+
+            placeholder.style.display = 'none';
+            img.style.display = 'none';
+            loading.style.display = 'block';
+
+            setTimeout(() => {
+                const res = document.getElementById('resolution').value;
+                const newSrc = `https://picsum.photos/${res}/${res}?random=${Date.now()}`;
+                img.src = newSrc;
+                img.onload = () => {
+                    loading.style.display = 'none';
+                    img.style.display = 'block';
+                    pixelImages.push(newSrc);
+                    updateSprites();
+                };
+            }, 2000);
+        });
+
+        document.getElementById('reset').addEventListener('click', function() {
+            document.getElementById('prompt').value = '';
+            document.getElementById('style').value = '8bit';
+            document.getElementById('palette').value = 'nes';
+            document.getElementById('resolution').value = 64;
+            document.getElementById('pixel-size').value = 1;
+            updateValue('resolution', 'x64');
+            updateValue('pixel-size');
+            document.getElementById('generated-image').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+            pixelImages = [];
+            document.getElementById('sprites').innerHTML = '';
+        });
+
+        document.getElementById('export').addEventListener('click', function() {
+            const img = document.getElementById('generated-image');
+            if (img.src && img.style.display !== 'none') {
+                const link = document.createElement('a');
+                link.href = img.src;
+                link.download = 'pixel-art.png';
+                link.click();
+            }
+        });
+
+        function updateSprites() {
+            const sprites = document.getElementById('sprites');
+            sprites.innerHTML = '';
+            pixelImages.forEach(src => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.onclick = () => {
+                    document.getElementById('generated-image').src = src;
+                    document.getElementById('generated-image').style.display = 'block';
+                    document.getElementById('placeholder').style.display = 'none';
+                };
+                sprites.appendChild(img);
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'g') {
+                e.preventDefault();
+                document.getElementById('generate').click();
+            }
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                document.getElementById('reset').click();
+            }
+        });
+    </script>
+</body>
+</html>

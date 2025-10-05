@@ -38,11 +38,11 @@ export function FrameContent() {
 
   // Don't render anything until dimensions are available
   if (dimensions.width === 0 || dimensions.height === 0) {
-    return <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden" />;
+    return <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden z-10" />;
   }
 
   return (
-    <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden z-10">
       {frames
         .filter((frame) => frame.visible && frame.metadata?.htmlPath)
         .map((frame) => {

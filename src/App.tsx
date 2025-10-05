@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Canvas } from '@/components/Canvas';
+import { CanvasOverlay } from '@/components/CanvasOverlay';
 import { FrameContent } from '@/components/FrameContent';
 import { LeftPanel } from '@/components/LeftPanel';
 import { RightPanel } from '@/components/RightPanel';
@@ -33,6 +34,7 @@ function App() {
         <Toolbar />
         <Canvas />
         <FrameContent />
+        <CanvasOverlay />
       </div>
 
       {/* Right Panel */}

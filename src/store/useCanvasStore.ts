@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import { produce } from 'immer';
 import { AppState, Frame, Tool, HistoryState } from '@/types';
-import { normalizeFrame } from '@/utils/canvas';
+import { normalizeFrame, doRectsIntersect } from '@/utils/canvas';
 import {
   getCwd,
   loadFramesFromDirectory,
@@ -65,6 +65,92 @@ interface CanvasActions {
   getSelectedFrames: () => Frame[];
   getFrame: (id: string) => Frame | undefined;
 }
+
+const AUTO_LAYOUT_GAP = 120;
+const AUTO_LAYOUT_MAX_ROW_WIDTH = 2400;
+
+const cloneFrame = (frame: Frame): Frame => ({
+  ...frame,
+  metadata: frame.metadata ? { ...frame.metadata } : undefined,
+});
+
+const framesOverlap = (frames: Frame[]): boolean => {
+  for (let i = 0; i < frames.length; i++) {
+    for (let j = i + 1; j < frames.length; j++) {
+      const a = frames[i];
+      const b = frames[j];
+      if (
+        doRectsIntersect(
+          a.x,
+          a.y,
+          a.width,
+          a.height,
+          b.x,
+          b.y,
+          b.width,
+          b.height
+        )
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const autoLayoutFrames = (frames: Frame[]): Frame[] => {
+  if (frames.length <= 1) {
+    return frames;
+  }
+
+  const arranged = frames.map(cloneFrame);
+  if (!framesOverlap(arranged)) {
+    return frames;
+  }
+
+  const entries = arranged.map((frame) => frame);
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+
+  let currentX = 0;
+  let currentY = 0;
+  let rowHeight = 0;
+
+  entries.forEach((frame) => {
+    if (currentX > 0 && currentX + frame.width > AUTO_LAYOUT_MAX_ROW_WIDTH) {
+      currentX = 0;
+      currentY += rowHeight + AUTO_LAYOUT_GAP;
+      rowHeight = 0;
+    }
+
+    frame.x = currentX;
+    frame.y = currentY;
+
+    rowHeight = Math.max(rowHeight, frame.height);
+    currentX += frame.width + AUTO_LAYOUT_GAP;
+  });
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  arranged.forEach((frame) => {
+    minX = Math.min(minX, frame.x);
+    minY = Math.min(minY, frame.y);
+    maxX = Math.max(maxX, frame.x + frame.width);
+    maxY = Math.max(maxY, frame.y + frame.height);
+  });
+
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+
+  arranged.forEach((frame) => {
+    frame.x = Math.round(frame.x - centerX);
+    frame.y = Math.round(frame.y - centerY);
+  });
+
+  return arranged;
+};
 
 const createInitialState = (): Omit<AppState, keyof CanvasActions> => ({
   frames: [],
@@ -131,7 +217,16 @@ export const useCanvasStore = create<AppState & CanvasActions>((set, get) => ({
       set({ isLoadingFromFS: true });
       const frames = await loadFramesFromDirectory(currentWorkingDir);
       console.log('🔍 [DEBUG] Loaded frames:', frames.length, 'from', currentWorkingDir);
-      set({ frames });
+      const arrangedFrames = autoLayoutFrames(frames);
+      const layoutApplied = arrangedFrames !== frames;
+
+      set({ frames: arrangedFrames });
+
+      if (layoutApplied) {
+        for (const frame of arrangedFrames) {
+          await get().syncFrameToFS(frame);
+        }
+      }
     } catch (error) {
       console.error('Failed to load frames from file system:', error);
     } finally {
