@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Generation UI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        main {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+        }
+        .controls {
+            width: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-right: 20px;
+        }
+        .controls label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .controls input, .controls select, .controls button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: none;
+            border-radius: 5px;
+        }
+        .controls button {
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        .controls button:hover {
+            background: #45a049;
+        }
+        .image-display {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        #generated-image {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px;
+        }
+        .placeholder {
+            font-size: 24px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>AI Image Generator</h1>
+    </header>
+    <main>
+        <aside class="controls">
+            <label for="prompt">Prompt:</label>
+            <input type="text" id="prompt" placeholder="Enter your image description">
+
+            <label for="style">Style:</label>
+            <select id="style">
+                <option value="realistic">Realistic</option>
+                <option value="artistic">Artistic</option>
+                <option value="abstract">Abstract</option>
+            </select>
+
+            <label for="width">Width:</label>
+            <input type="range" id="width" min="256" max="1024" value="512">
+
+            <label for="height">Height:</label>
+            <input type="range" id="height" min="256" max="1024" value="512">
+
+            <label for="steps">Steps:</label>
+            <input type="range" id="steps" min="10" max="100" value="50">
+
+            <label for="guidance">Guidance Scale:</label>
+            <input type="range" id="guidance" min="1" max="20" value="7.5" step="0.5">
+
+            <button id="generate">Generate Image</button>
+            <button id="reset">Reset</button>
+            <button id="download">Download</button>
+        </aside>
+        <section class="image-display">
+            <div class="placeholder" id="placeholder">Generated image will appear here</div>
+            <img id="generated-image" src="" alt="Generated Image" style="display: none;">
+        </section>
+    </main>
+    <script>
+        // Placeholder script for interactivity (in a real app, integrate with backend API)
+        document.getElementById('generate').addEventListener('click', function() {
+            // Simulate image generation
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('generated-image').src = 'https://via.placeholder.com/512x512'; // Replace with actual API call
+            document.getElementById('generated-image').style.display = 'block';
+        });
+        document.getElementById('reset').addEventListener('click', function() {
+            document.getElementById('prompt').value = '';
+            document.getElementById('style').value = 'realistic';
+            document.getElementById('width').value = 512;
+            document.getElementById('height').value = 512;
+            document.getElementById('steps').value = 50;
+            document.getElementById('guidance').value = 7.5;
+            document.getElementById('generated-image').style.display = 'none';
+            document.getElementById('placeholder').style.display = 'block';
+        });
+        document.getElementById('download').addEventListener('click', function() {
+            const img = document.getElementById('generated-image');
+            if (img.src) {
+                const link = document.createElement('a');
+                link.href = img.src;
+                link.download = 'generated-image.png';
+                link.click();
+            }
+        });
+    </script>
+</body>
+</html>

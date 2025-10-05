@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Frame",
+  "description": "Schema for frame.json files in UX Canvas",
+  "type": "object",
+  "required": ["id", "name", "x", "y", "width", "height"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the frame (auto-generated with nanoid)",
+      "examples": ["V1StGXR8_Z5jdHi6B-myT", "abcd1234efgh5678"]
+    },
+    "name": {
+      "type": "string",
+      "description": "Display name of the frame",
+      "minLength": 1,
+      "maxLength": 255,
+      "examples": ["Login Screen", "Button Component", "Header Layout"]
+    },
+    "x": {
+      "type": "number",
+      "description": "X position in world coordinates (can be negative)",
+      "examples": [0, 100, -200, 350.5]
+    },
+    "y": {
+      "type": "number",
+      "description": "Y position in world coordinates (can be negative)",
+      "examples": [0, 150, -100, 425.25]
+    },
+    "width": {
+      "type": "number",
+      "description": "Width of the frame in pixels (must be positive)",
+      "minimum": 1,
+      "examples": [200, 400, 1024]
+    },
+    "height": {
+      "type": "number",
+      "description": "Height of the frame in pixels (must be positive)",
+      "minimum": 1,
+      "examples": [200, 300, 768]
+    },
+    "color": {
+      "type": "string",
+      "description": "Fill color in hexadecimal format with alpha channel (RRGGBBAA)",
+      "pattern": "^#[0-9A-Fa-f]{8}$",
+      "default": "#FF6B6B80",
+      "examples": [
+        "#FF6B6B80",
+        "#4ECDC480",
+        "#45B7D180",
+        "#FFA50780"
+      ]
+    },
+    "rotation": {
+      "type": "number",
+      "description": "Rotation angle in degrees (0-360)",
+      "minimum": 0,
+      "maximum": 360,
+      "default": 0,
+      "examples": [0, 45, 90, 180, 270]
+    },
+    "locked": {
+      "type": "boolean",
+      "description": "Whether the frame is locked from editing",
+      "default": false
+    },
+    "visible": {
+      "type": "boolean",
+      "description": "Whether the frame is visible on the canvas",
+      "default": true
+    },
+    "opacity": {
+      "type": "number",
+      "description": "Opacity value (0.0 = fully transparent, 1.0 = fully opaque)",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 1,
+      "examples": [0, 0.25, 0.5, 0.75, 1]
+    }
+  },
+  "examples": [
+    {
+      "id": "V1StGXR8_Z5jdHi6B-myT",
+      "name": "Login Screen",
+      "x": 100,
+      "y": 200,
+      "width": 400,
+      "height": 600,
+      "color": "#4ECDC480",
+      "rotation": 0,
+      "locked": false,
+      "visible": true,
+      "opacity": 1
+    },
+    {
+      "id": "abcd1234efgh5678",
+      "name": "Button Component",
+      "x": -50,
+      "y": -100,
+      "width": 120,
+      "height": 40,
+      "color": "#FF6B6B80",
+      "rotation": 0,
+      "locked": false,
+      "visible": true,
+      "opacity": 0.9
+    }
+  ]
+}
